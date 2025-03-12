@@ -27,12 +27,31 @@ client.on('message_create', message => {
         if(command == "test"){
             message.reply("> Testado com sucesso");
         }
-        else {
+        else if (command == "r") {
+        try{
+            message.reply(eval(rep.slice(2)).toString());
+        } 
+        catch(e){
+            message.reply("> Entre com um comando valido!")
+        }
+        }
+        else{
             try{
-                message.reply(eval(rep.slice(1)).toString());
-            } 
+                const roll = (min,max) =>{
+                    return Math.round(Math.random() * (max - min) + min);
+                }
+                numeroDeDados = command.split("d")[0]||1;
+                tipoDeDado = command.split("d")[1];
+                
+                resultados = [];
+                for(i = 0; i < numeroDeDados; i++){
+                resultados.push(roll(1,tipoDeDado))
+                }
+                somaResultado = resultados.reduce((accumulator, curr) => accumulator + curr)
+                message.reply(resultados.toString())
+            }
             catch(e){
-                message.reply("> Entre com um comando valido!")
+                reply("Pare de tentar crashar meu bot!!! >:(")  
             }
         }
     }
