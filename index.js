@@ -23,9 +23,17 @@ client.on('message_create', message => {
     command = rep.slice(1).split(" ")[0];
     if(rep[0] == "!"){
         console.log("Comando Detectado!");
-        console.log(command)
+        console.log(command);
         if(command == "test"){
-            message.reply("Testado com sucesso")
+            message.reply("> Testado com sucesso");
+        }
+        else {
+            try{
+                message.reply(eval(rep.slice(1)).toString());
+            } 
+            catch(e){
+                message.reply("> Entre com um comando valido!")
+            }
         }
     }
 });
