@@ -19,41 +19,77 @@ client.on('ready', () => {
 
 // Responde a mensagens
 client.on('message_create', message => {
-    rep = message.body;
-    command = rep.slice(1).split(" ")[0];
-    if(rep[0] == "!"){
-        console.log("Comando Detectado!");
-        console.log(command);
-        if(command == "test"){
+    let rep = message.body.trim();
+
+    if (!rep.startsWith("!") || rep.length < 2) return; // Ignorar mensagens inválidas
+
+    let command = rep.slice(1).split(" ");
+
+    console.log("Comando Detectado:", command);
+
+    switch (command[0]) {
+        case "test":
             message.reply("> Testado com sucesso");
-        }
-        else if (command == "r") {
-        try{
-            message.reply(eval(rep.slice(2)).toString());
-        } 
-        catch(e){
-            message.reply("> Entre com um comando valido!")
-        }
-        }
-        else{
-            try{
-                const roll = (min,max) =>{
-                    return Math.round(Math.random() * (max - min) + min);
-                }
-                numeroDeDados = command.split("d")[0]||1;
-                tipoDeDado = command.split("d")[1];
-                
-                resultados = [];
-                for(i = 0; i < numeroDeDados; i++){
-                resultados.push(roll(1,tipoDeDado))
-                }
-                somaResultado = resultados.reduce((accumulator, curr) => accumulator + curr)
-                message.reply(resultados.toString())
+            break;
+
+        case "r":
+            try {
+                let resultado = Function('"use strict"; return (' + rep.slice(2) + ')')();
+                message.reply("> " + resultado.toString());
+            } catch (e) {
+                message.reply("> Erro ao executar código!");
             }
-            catch(e){
-                reply("Pare de tentar crashar meu bot!!! >:(")  
+            break;
+
+         case "d":
+            if (!command[1] || !/^(\d*)d(\d+)$/.test(command[1])) {
+                message.reply("> Formato inválido! Use: !d XdY (ex: !d 3d6)");
+                return;
             }
-        }
+
+            try {
+                let [numDados, tipoDado] = command[1].split("d").map(x => parseInt(x) || 1);
+                if (numDados > 10 || tipoDado > 100) {
+                    message.reply("> Número muito alto! (Máx: 10 dados, d100)");
+                    return;
+                }
+
+                let resultados = Array.from({ length: numDados }, () => Math.floor(Math.random() * tipoDado) + 1);
+                let somaResultado = resultados.reduce((acc, val) => acc + val, 0);
+
+                message.reply(`> 🎲 Rolagem: [${resultados.join(", ")}] = *${somaResultado}*`);
+            } catch (e) {
+                message.reply("> Erro ao rolar dados!");
+            }
+             break;
+        case "q":
+            x = command[1];
+            y = command[2];
+            console.log(x,y)
+            if(x > 0 && y > 0){
+            message.reply("Primeiro Quadrante!")
+            } 
+            else if(x < 0 && y > 0){
+            message.reply("Segundo Quadrante!")
+            }
+            else if(x < 0 && y < 0){
+            message.reply("Terceiro Quadrante!")
+            }
+            else if(x > 0 && y < 0){
+            message.reply("Quarto Quadrante!")
+            }
+            else if(x == 0 && y == 0){
+            message.reply("Origem")
+            }
+            else if(x == 0){
+            message.reply("Eixo Y")
+            }
+            else if(y == 0){
+            message.reply("Eixo X")
+            }
+            break;
+        default:
+            message.reply("> Comando desconhecido!");
     }
 });
 
