@@ -1,5 +1,9 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const youtubedl = require('youtube-dl-exec');
+const path = require('path');
+const fs = require('fs');
+
 
 // Inicializa o cliente
 const client = new Client({
@@ -18,7 +22,7 @@ client.on('ready', () => {
 });
 
 // Responde a mensagens
-client.on('message_create', message => {
+client.on('message_create', async message => {
     let rep = message.body.trim();
 
     if (!rep.startsWith("!") || rep.length < 2) return; // Ignorar mensagens inválidas
@@ -41,7 +45,7 @@ client.on('message_create', message => {
             }
             break;
 
-         case "d":
+        case "d":
             if (!command[1] || !/^(\d*)d(\d+)$/.test(command[1])) {
                 message.reply("> Formato inválido! Use: !d XdY (ex: !d 3d6)");
                 return;
@@ -61,33 +65,41 @@ client.on('message_create', message => {
             } catch (e) {
                 message.reply("> Erro ao rolar dados!");
             }
-             break;
-        case "q":
-            x = command[1];
-            y = command[2];
-            console.log(x,y)
-            if(x > 0 && y > 0){
-            message.reply("Primeiro Quadrante!")
-            } 
-            else if(x < 0 && y > 0){
-            message.reply("Segundo Quadrante!")
-            }
-            else if(x < 0 && y < 0){
-            message.reply("Terceiro Quadrante!")
-            }
-            else if(x > 0 && y < 0){
-            message.reply("Quarto Quadrante!")
-            }
-            else if(x == 0 && y == 0){
-            message.reply("Origem")
-            }
-            else if(x == 0){
-            message.reply("Eixo Y")
-            }
-            else if(y == 0){
-            message.reply("Eixo X")
-            }
             break;
+        case "yt":
+            const url = command[1];
+            if (!url.startsWith('http')) {
+            return message.reply('❌ Envie um link válido do YouTube.');
+            }
+
+            const filename = `music_${Date.now()}.mp3`;
+            const filepath = path.join(__dirname, filename);
+
+            message.reply('🎵 Baixando sua música...');
+
+            try {
+            await youtubedl(url, {
+                extractAudio: true,
+                audioFormat: 'mp3',
+                output: filename,
+                noCheckCertificates: true,
+                noWarnings: true,
+                preferFreeFormats: true,
+            });
+
+            const media = MessageMedia.fromFilePath(filepath);
+
+            await message.reply(media, undefined, {
+            sendMediaAsDocument: command[2] == "on"?false:true // ou false se quiser mandar como áudio normal
+            });
+
+
+            fs.unlinkSync(filepath); // apagar o arquivo após o envio
+            } catch (err) {
+            console.error('Erro ao baixar:', err);
+            message.reply('❌ Ocorreu um erro ao baixar a música.');
+            }
+            break
         default:
             message.reply("> Comando desconhecido!");
     }
