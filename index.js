@@ -72,7 +72,7 @@ client.on('message_create', async message => {
             return message.reply('❌ Envie um link válido do YouTube.');
             }
 
-            const filename = `music_${Date.now()}.mp3`;
+            const filename = `${command[2] == undefined?(Date.now)():(rep.slice(5 + command[1].length))}.mp3`;
             const filepath = path.join(__dirname, filename);
 
             message.reply('🎵 Baixando sua música...');
@@ -90,7 +90,7 @@ client.on('message_create', async message => {
             const media = MessageMedia.fromFilePath(filepath);
 
             await message.reply(media, undefined, {
-            sendMediaAsDocument: command[2] == "on"?false:true // ou false se quiser mandar como áudio normal
+            sendMediaAsDocument: true // ou false se quiser mandar como áudio normal
             });
 
 
